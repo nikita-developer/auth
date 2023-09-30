@@ -17,11 +17,11 @@ class UserService {
         // хешируем пароль
         const hashPassword = await bcrypt.hash(password, 3)
 
-        // получаем рандомную строку для генерации ссылки активации аккаунта
-        const activationLink = uuid.v4()
-
         // создаем пользователя
         const user = await UserModel.create({email, password: hashPassword, activationLink})
+
+        // получаем рандомную строку для генерации ссылки активации аккаунта
+        // const activationLink = uuid.v4()
 
         // отправляем письмо для активации
         // await mailService.sendActivationMail(email, `${process.env.API_URL}api/activate/${activationLink}`)
