@@ -5,9 +5,10 @@ const mailService = require('./mail-service')
 const tokenService = require('./token-service')
 const UserDto = require('../dtos/user-dto')
 const ApiError = require('../exceptions/api-error')
+const {ObjectId} = require("mongodb");
 
 class UserService {
-    async registration(email, password) {
+    async registration(email, password, firstName) {
         // поиск пользователя в базу
         const candidate = await UserModel.findOne({email})
 
@@ -17,14 +18,11 @@ class UserService {
         // хешируем пароль
         const hashPassword = await bcrypt.hash(password, 3)
 
-        // создаем пользователя
-        const user = await UserModel.create({email, password: hashPassword, activationLink})
-
         // получаем рандомную строку для генерации ссылки активации аккаунта
-        // const activationLink = uuid.v4()
+        const activationLink = uuid.v4()
 
-        // отправляем письмо для активации
-        // await mailService.sendActivationMail(email, `${process.env.API_URL}api/activate/${activationLink}`)
+        // создаем пользователя
+        const user = await UserModel.create({email, password: hashPassword, activationLink, firstName})
 
         // фильтруем объект и отдаем только те данные которые прописаны в dto
         const userDto = new UserDto(user)
@@ -35,7 +33,14 @@ class UserService {
         // сохраняем токены в базу
         await tokenService.saveToken(userDto.id, tokens.refreshToken)
 
-        return {...tokens, user: userDto}
+        // отправляем письмо для активации
+        try {
+            mailService.sendActivationMail(email, `${process.env.API_URL}api/activate/${activationLink}`)
+        } catch (e) {
+            throw ApiError.BadRequest(`Ошибка отправки отправки письма ${e}`)
+        }
+
+        return {...tokens}
     }
 
     async activate(activationLink) {
@@ -111,9 +116,14 @@ class UserService {
         return {...tokens, user: userDto}
     }
 
-    async getAllUsers() {
+    async getUsers() {
         const users = await UserModel.find()
         return users
+    }
+
+    async deleteUser(id) {
+        await UserModel.deleteOne({_id: new ObjectId(id)})
+        return
     }
 }
 

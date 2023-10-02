@@ -11,10 +11,10 @@ class UserController {
             if(!errors.isEmpty()) return next(ApiError.BadRequest('Ошибка при валидации', errors.array()))
 
             // получаем email и password
-            const {email, password} = req.body
+            const {email, password, firstName} = req.body
 
             // вызывваем функцию и регистрируем пользователя
-            const userData = await userService.registration(email, password)
+            const userData = await userService.registration(email, password, firstName)
 
             // записываем в куки
             res.cookie('refreshToken', userData.refreshToken, {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true})
@@ -67,7 +67,6 @@ class UserController {
             // вызываем функцию и передаем ей ссылку активации
             await userService.activate(activationLink)
 
-            // перенаправляем пользователя
             return res.redirect(process.env.CLIENT_URL)
         } catch (e) {
             next(e)
@@ -92,9 +91,18 @@ class UserController {
 
     async getUsers(req, res, next) {
         try {
-            const users = await userService.getAllUsers()
-            
+            const users = await userService.getUsers()
             return res.json({users})
+        } catch (e) {
+            next(e)
+        }
+    }
+
+    async deleteUser(req, res, next) {
+        try {
+            const {email, id} = req.body
+            await userService.deleteUser(id)
+            return res.json({message: `Пользователь с почтой ${email} был удален`})
         } catch (e) {
             next(e)
         }
