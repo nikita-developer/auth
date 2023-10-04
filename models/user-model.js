@@ -10,6 +10,7 @@ const UserSchema = new Schema({
     isActivated: {type: Boolean, default: false},
     activationLink: {type: String},
     role: {type: String, default: 'default'},
+    recoveryPasswordLink: {type: String},
 })
 
 module.exports = model('User', UserSchema)

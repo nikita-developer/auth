@@ -117,6 +117,44 @@ class UserController {
             next(e)
         }
     }
+
+    async addRecoveryPasswordLink(req, res, next) {
+        try {
+            const {email} = req.body
+            await userService.addRecoveryPasswordLink(email)
+            return res.json('Загялните на почту')
+        } catch (e) {
+            next(e)
+        }
+    }
+
+    async redirectRecoveryPassword(req, res, next) {
+        try {
+            // получаем ссылку активации
+            const recoveryPasswordLink = req.params.link
+
+            // вызываем функцию и передаем ей ссылку активации
+            await userService.redirectRecoveryPassword(recoveryPasswordLink)
+
+            return res.redirect(`${process.env.CLIENT_URL}recovery-password`)
+        } catch (e) {
+            next(e)
+        }
+    }
+
+    async recoveryPassword(req, res, next) {
+        try {
+            // получаем пароль
+            const {email, password} = req.body
+
+            // вызываем функцию и передаем ей ссылку активации
+            await userService.recoveryPassword(email, password)
+
+            return res.redirect(`${process.env.CLIENT_URL}`)
+        } catch (e) {
+            next(e)
+        }
+    }
 }
 
 module.exports = new UserController()

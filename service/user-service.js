@@ -142,6 +142,55 @@ class UserService {
         // возвращаем пользователя
         return userDto
     }
+
+    async addRecoveryPasswordLink(email) {
+        // поиск пользователя в базе
+        const user = await UserModel.findOne({email})
+
+        // проверка на существования в базе пользователя
+        if(!user) throw ApiError.BadRequest(`Пользователь с почтовым адресом ${email} не найден`)
+
+        // получаем рандомную строку для генерации ссылки активации аккаунта
+        const recoveryPasswordLink = uuid.v4()
+
+        user.recoveryPasswordLink = recoveryPasswordLink
+
+        // отправляем письмо для активации
+        try {
+            mailService.sendActivationMail(email, `${process.env.API_URL}api/redirect-rcovery-password/${recoveryPasswordLink}`)
+        } catch (e) {
+            throw ApiError.BadRequest(`Ошибка отправки отправки письма ${e}`)
+        }
+
+        await user.save()
+    }
+
+    async redirectRecoveryPassword(recoveryPasswordLink) {
+        // поиск пользователя по ссылке
+        const user = await UserModel.findOne({recoveryPasswordLink})
+
+        // проверка на существование пользователя
+        if(!user) throw ApiError.BadRequest('Неккоректная ссылка восстановления пароля')
+    }
+
+    async recoveryPassword(email, password) {
+        // поиск пользователя в базе
+        const user = await UserModel.findOne({email})
+
+        if(!user.recoveryPasswordLink) throw ApiError.BadRequest(`Перейдите по почте`)
+
+        // проверка на существования в базе пользователя
+        if(!user) throw ApiError.BadRequest(`Пользователь с почтовым адресом ${email} не найден`)
+
+        // хешируем пароль
+        const hashPassword = await bcrypt.hash(password, 3)
+
+        // изменяем пароль
+        user.password = hashPassword
+
+        // сохраняем в базу
+        user.save()
+    }
 }
 
 module.exports = new UserService()

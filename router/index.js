@@ -10,6 +10,10 @@ router.post('/login', userController.login)
 router.post('/logout', userController.logout)
 router.get('/refresh', userController.refresh)
 
+router.post('/add-recovery-password-link', userController.addRecoveryPasswordLink)
+router.get('/redirect-rcovery-password/:link', userController.redirectRecoveryPassword)
+router.post('/recovery-password', userController.recoveryPassword)
+
 // На стадии обдумывания
 router.get('/activate/:link', userController.activate)
 
