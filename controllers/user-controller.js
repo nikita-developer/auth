@@ -107,6 +107,16 @@ class UserController {
             next(e)
         }
     }
+
+    async editRole(req, res, next) {
+        try {
+            const {id, role} = req.body
+            const newRole = await userService.editRole(id, role)
+            return res.json(newRole)
+        } catch (e) {
+            next(e)
+        }
+    }
 }
 
 module.exports = new UserController()

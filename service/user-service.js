@@ -125,6 +125,23 @@ class UserService {
         await UserModel.deleteOne({_id: new ObjectId(id)})
         return
     }
+
+    async editRole(id, role) {
+        // достаем по id
+        const user = await UserModel.findById(id)
+
+        // меняем роль
+        user.role = role
+
+        // сохраняем
+        await user.save()
+
+        // фильтруем объект и отдаем только те данные которые прописаны в dto
+        const userDto = new UserDto(user)
+
+        // возвращаем пользователя
+        return userDto
+    }
 }
 
 module.exports = new UserService()
