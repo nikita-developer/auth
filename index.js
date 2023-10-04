@@ -28,7 +28,7 @@ app.use(errorMiddleware)
 // функция запуска сервера
 const start = async () => {
     try {
-        // подключаемся к базу
+        // подключаемся к базе
         await mongoose.connect(process.env.DB_URL, {
             useNewUrlParser: true,
             useUnifiedTopology: true
