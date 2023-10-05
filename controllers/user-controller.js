@@ -153,6 +153,11 @@ class UserController {
     // отрабатывает когда придумываем новый пароль
     async recoveryPassword(req, res, next) {
         try {
+            // проверка на ошибки
+            const errors = validationResult(req)
+
+            if(!errors.isEmpty()) return next(ApiError.BadRequest('Ошибка при валидации', errors.array()))
+
             // получаем почту и пароль
             const {email, password} = req.body
 

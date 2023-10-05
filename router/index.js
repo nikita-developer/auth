@@ -13,7 +13,7 @@ router.get('/refresh', userController.refresh)
 
 router.post('/add-recovery-password-link', userMiddleware, userController.addRecoveryPasswordLink)
 router.get('/redirect-recovery-password/:link', userController.redirectRecoveryPassword)
-router.post('/recovery-password', userMiddleware,  userController.recoveryPassword)
+router.post('/recovery-password', body('password').isLength({min: 8, max: 32}), userController.recoveryPassword)
 
 // На стадии обдумывания
 router.get('/activate/:link', userController.activate)
