@@ -118,39 +118,49 @@ class UserController {
         }
     }
 
+    // функция отправки письма на почту для восстановления пароля
     async addRecoveryPasswordLink(req, res, next) {
         try {
+            // получаем почту
             const {email} = req.body
+
+            // вызываем функцию проверки и отправки ссылки на почту
             await userService.addRecoveryPasswordLink(email)
-            return res.json('Загялните на почту')
+
+            // возвращаем ответ
+            return res.json({message: 'Загялните в почту'})
         } catch (e) {
             next(e)
         }
     }
 
+    // функция отрабатывает когда переходим по ссылке которая приходит на почту
     async redirectRecoveryPassword(req, res, next) {
         try {
-            // получаем ссылку активации
+            // получаем ссылку восстановления пароля
             const recoveryPasswordLink = req.params.link
 
-            // вызываем функцию и передаем ей ссылку активации
+            // функция для проверки и смены флага восстановления пароля
             await userService.redirectRecoveryPassword(recoveryPasswordLink)
 
+            // редиректим на восстановление пароля
             return res.redirect(`${process.env.CLIENT_URL}recovery-password`)
         } catch (e) {
             next(e)
         }
     }
 
+    // отрабатывает когда придумываем новый пароль
     async recoveryPassword(req, res, next) {
         try {
-            // получаем пароль
+            // получаем почту и пароль
             const {email, password} = req.body
 
-            // вызываем функцию и передаем ей ссылку активации
+            // отрабатывает когда придумываем новый пароль
             await userService.recoveryPassword(email, password)
 
-            return res.redirect(`${process.env.CLIENT_URL}`)
+            // редиректим на главную
+            return res.json({message: 'Пароль изменен!'})
         } catch (e) {
             next(e)
         }

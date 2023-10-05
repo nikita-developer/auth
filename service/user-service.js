@@ -143,16 +143,18 @@ class UserService {
         return userDto
     }
 
+    // функция отправки письма на почту для восстановления пароля
     async addRecoveryPasswordLink(email) {
-        // поиск пользователя в базе
+        // поиск пользователя в базе по почте
         const user = await UserModel.findOne({email})
 
         // проверка на существования в базе пользователя
         if(!user) throw ApiError.BadRequest(`Пользователь с почтовым адресом ${email} не найден`)
 
-        // получаем рандомную строку для генерации ссылки активации аккаунта
+        // получаем рандомную строку для генерации ссылки восстановления пароля
         const recoveryPasswordLink = uuid.v4()
 
+        // присваиваем ссылку пользователю
         user.recoveryPasswordLink = recoveryPasswordLink
 
         // отправляем письмо для активации
@@ -162,31 +164,44 @@ class UserService {
             throw ApiError.BadRequest(`Ошибка отправки отправки письма ${e}`)
         }
 
+        // сохраняем пользователя
         await user.save()
     }
 
+    // функция отрабатывает когда переходим по ссылке которая приходит на почту
     async redirectRecoveryPassword(recoveryPasswordLink) {
-        // поиск пользователя по ссылке
+        // поиск пользователя по ссылке восстановления пароля
         const user = await UserModel.findOne({recoveryPasswordLink})
 
         // проверка на существование пользователя
         if(!user) throw ApiError.BadRequest('Неккоректная ссылка восстановления пароля')
+
+        // меняем флаг восстановления пароля
+        user.isRecoveryPassword = true
+
+        // сохраняем пользователя
+        user.save()
     }
 
+    // отрабатывает когда придумываем новый пароль
     async recoveryPassword(email, password) {
-        // поиск пользователя в базе
+        // поиск пользователя в базе по почте
         const user = await UserModel.findOne({email})
-
-        if(!user.recoveryPasswordLink) throw ApiError.BadRequest(`Перейдите по почте`)
 
         // проверка на существования в базе пользователя
         if(!user) throw ApiError.BadRequest(`Пользователь с почтовым адресом ${email} не найден`)
+
+        // проверка флага восстановления пароля
+        if(!user.isRecoveryPassword) throw ApiError.BadRequest(`Перейдите по почте`)
 
         // хешируем пароль
         const hashPassword = await bcrypt.hash(password, 3)
 
         // изменяем пароль
         user.password = hashPassword
+
+        // меняем флаг восстановления пароля
+        user.isRecoveryPassword = false
 
         // сохраняем в базу
         user.save()
