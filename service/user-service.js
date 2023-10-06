@@ -159,7 +159,7 @@ class UserService {
 
         // отправляем письмо для активации
         try {
-            mailService.sendActivationMail(email, `${process.env.API_URL}api/redirect-rcovery-password/${recoveryPasswordLink}`)
+            mailService.sendRecoveryPasswordMail(email, `${process.env.API_URL}api/redirect-rcovery-password/${recoveryPasswordLink}`)
         } catch (e) {
             throw ApiError.BadRequest(`Ошибка отправки отправки письма ${e}`)
         }
